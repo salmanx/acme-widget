@@ -1,0 +1,3 @@
+kashbon	deshi	100
+mosko	snacks	200
+nanna	birani	100
