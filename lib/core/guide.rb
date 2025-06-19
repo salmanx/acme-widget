@@ -47,7 +47,7 @@ class Guide
       action = Config.valid_action?(input)
       break if action # Exit loop if valid action found
 
-      Config.show_actions_details
+      Config.show_action_command
     end
 
     [action, args]
@@ -64,7 +64,7 @@ class Guide
     when action = 'quit'
       :quit
     else
-      Config.show_actions_details
+      Config.show_action_command
     end
   end
 

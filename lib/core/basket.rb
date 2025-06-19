@@ -1,3 +1,8 @@
+# Basket
+# ----------
+# Encapsulates a customer's shopping basket.
+# Applies special offers and calculates the final total with delivery charges
+
 require_relative 'basket_item'
 require_relative 'delivery_rules'
 require_relative '../offers/red_widget_offer'

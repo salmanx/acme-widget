@@ -1,4 +1,10 @@
-###  Acme Widget Co  ###
+##  Acme Widget Co  ###
+
+# Guide
+# ----------
+# Entry-point controller class that handles user interaction.
+# Loads products from a CSV file and manages commands like listing products,
+# adding items to basket, and showing delivery rules.
 
 # Launch this from command line to get started
 # ruby init.rb

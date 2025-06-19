@@ -1,3 +1,8 @@
+# Render
+# ----------
+# Provides all user-facing output (headers, tables, prompts).
+# Acts as the UI layer, formatting the display of products, basket, and actions.
+
 require 'helpers/string_extend'
 require_relative '../core/config'
 

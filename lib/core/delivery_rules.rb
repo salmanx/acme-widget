@@ -1,3 +1,8 @@
+# DeliveryRules
+# ----------
+# Applies tiered delivery pricing based on subtotal.
+# Tiers: Orders under $50 cost $4.95. For orders under $90, delivery costs $2.95. Orders of $90 or more have free delivery.
+
 class DeliveryRules
   TIERS = [
     { threshold: 90,   fee: 0.00 },

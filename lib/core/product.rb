@@ -1,3 +1,8 @@
+# Product
+# ----------
+# Represents a product in the catalog with attributes: code, name, and price.
+# Loads product data from a CSV file and supports validation and retrieval of products.
+
 require 'csv'
 
 class Product

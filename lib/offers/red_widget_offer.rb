@@ -1,3 +1,8 @@
+# RedWidgetOffer
+# ----------
+# Special offer logic: Buy 1 Red Widget (R01), get the 2nd at half price.
+# Applies the discount directly to the BasketItem’s subtotal.
+
 class RedWidgetOffer
   def initialize(item)
     @item = item

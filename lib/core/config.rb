@@ -1,3 +1,8 @@
+# Config
+# ----------
+# Manages configuration for supported user commands (list, add, rules, quit).
+# Also displays command help text in the UI.
+
 class Config
   ACTIONS = [
     { full: 'list',  short: 'L', description: 'Show product list' },
@@ -31,7 +36,7 @@ class Config
       action
     end
 
-    def show_actions_details
+    def show_action_command
       puts "\nUSE FOLLOWING COMMAND:\n\n"
       ACTIONS.each do |action|
         puts "  #{action[:full].ljust(6)} (#{action[:short]}): #{action[:description]}"
