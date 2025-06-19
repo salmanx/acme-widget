@@ -6,7 +6,8 @@ class DeliveryRules
   ].freeze
 
   def initialize
-    @tiers = TIERS.sort_by { |t| -t[:threshold] } # Ensure proper order
+    # Keep tiers sorted by threshold in descending order
+    @tiers = TIERS.sort_by { |t| -t[:threshold] }
   end
 
   def fee_for(subtotal)

@@ -18,23 +18,36 @@ class Guide
 
   def launch!
     Render.introduction
+
     result = nil
     until result == :quit
       action, args = get_action
+
       result = do_action(action, args)
     end
 
     Render.conclusion
   end
 
+  private
+
   def get_action
     action = nil
-    until Config.actions.include? action
+    args = []
+
+    loop do
       Render.show_available_actions
       print '> '
-      user_response = gets.chomp
-      args = user_response.downcase.strip.split(' ')
-      action = args.shift
+      user_response = gets.chomp.strip
+      next if user_response.empty?
+
+      args = user_response.split(' ')
+      input = args.shift
+
+      action = Config.valid_action?(input)
+      break if action # Exit loop if valid action found
+
+      Config.show_actions_details
     end
 
     [action, args]
@@ -42,24 +55,20 @@ class Guide
 
   def do_action(action, args = [])
     case action
-    when action = 'show_products'
+    when action = 'list'
       show_products(args)
     when action = 'add'
       add_to_basket
-    when action = 'show_delivery_charge'
+    when action = 'rules'
       show_delivery_charge
     when action = 'quit'
       :quit
     else
-      puts "\nPlease use only allowed commands!\n"
+      Config.show_actions_details
     end
   end
 
-  def show_products(args)
-    sort_order = args.shift
-    sort_order = args.shift if sort_order == 'by'
-    sort_order = 'code' unless %w[code name price].include?(sort_order)
-
+  def show_products(sort_order)
     Render.show_action_header('Show all products')
 
     products = Product.saved_products
@@ -70,16 +79,7 @@ class Guide
       return
     end
 
-    products.sort! do |r1, r2|
-      case sort_order
-      when 'code'
-        r1.code.downcase <=> r2.code.downcase
-      when 'name'
-        r1.name.downcase <=> r2.name.downcase
-      when 'price'
-        r1.price.to_i <=> r2.price.to_i
-      end
-    end
+    sort_products(products, sort_order)
 
     Render.show_product_table products
 
@@ -100,6 +100,37 @@ class Guide
     end
 
     products = Product.saved_products
+
+    baskets = build_basket(product_codes, products)
+
+    return unless baskets.any?
+
+    total = Basket.new(baskets).apply_offers.total.to_s('F')
+    Render.show_basket_table(baskets, total)
+  end
+
+  def show_delivery_charge
+    Render.show_delivery_charge_rules
+  end
+
+  def sort_products(products, sort_order)
+    order = sort_order.shift
+    order = sort_order.shift if order == 'by'
+    order = 'code' unless %w[code name price].include?(order)
+
+    products.sort! do |r1, r2|
+      case order
+      when 'code'
+        r2.code.downcase <=> r1.code.downcase # Descending order
+      when 'name'
+        r1.name.downcase <=> r2.name.downcase
+      when 'price'
+        r1.price.to_i <=> r2.price.to_i
+      end
+    end
+  end
+
+  def build_basket(product_codes, products)
     baskets = []
 
     # Pre-index products by lowercase code for O(1) lookups
@@ -116,17 +147,10 @@ class Guide
         end || baskets.push(BasketItem.new(product)).last
         basket_item.increment
       else
-        puts "\nProduct #{code} not found\n"
+        puts "\nERROR: Product #{code} not found\n"
       end
     end
 
-    return unless baskets.any?
-
-    total = Basket.new(baskets).add.total.to_s('F')
-    Render.show_basket_table(baskets, total)
-  end
-
-  def show_delivery_charge
-    Render.show_delivery_charge_rules
+    baskets
   end
 end

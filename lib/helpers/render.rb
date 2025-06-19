@@ -31,7 +31,7 @@ module Render
   end
 
   def show_sort_action_title
-    puts("Sort using 'show_products name', 'show_products code', 'show_products by name' ")
+    puts("Sort using 'list name', 'list code', 'list by price' ")
     puts "\n"
   end
 
@@ -63,7 +63,11 @@ module Render
   end
 
   def show_available_actions
-    puts "AVAILABLE ACTIONS: #{Config.actions.join(', ')} \n\n"
+    action_display = Config.actions.map do |full, short|
+      "#{full}(#{short})"
+    end.join(', ')
+
+    puts "AVAILABLE ACTIONS: #{action_display}\n\n"
   end
 
   def show_basket_table(baskets, total)

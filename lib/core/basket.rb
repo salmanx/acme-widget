@@ -7,7 +7,7 @@ class Basket
     @items = items
   end
 
-  def add
+  def apply_offers
     @items.each do |item|
       if item.product.code == 'R01'
         RedWidgetOffer.new(item).apply
