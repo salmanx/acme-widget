@@ -1,7 +1,7 @@
 ###  Acme Widget Co  ###
 
-# Launch this from command line
-# to get started
+# Launch this from command line to get started
+# ruby init.rb
 
 APP_ROOT = File.dirname(__FILE__)
 

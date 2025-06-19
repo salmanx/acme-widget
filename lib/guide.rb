@@ -1,10 +1,14 @@
 require 'product'
-require 'support/string_extend'
+require 'basket_item'
+require 'basket'
+require 'support/render'
 
 class Guide
   class Config
-    @@actions = %w[show_products show_delivery_charge add_to_basket quit]
-    def self.actions = @@actions
+    @actions = %w[show_products show_delivery_charge add quit]
+    class << self
+      attr_reader :actions
+    end
   end
 
   def initialize(filepath = nil)
@@ -19,7 +23,7 @@ class Guide
   end
 
   def launch!
-    intoduction
+    Render.introduction
     show_available_actions
     result = nil
     until result == :quit
@@ -27,7 +31,7 @@ class Guide
       result = do_action(action, args)
     end
 
-    conclusion
+    Render.conclusion
   end
 
   def get_action
@@ -47,8 +51,8 @@ class Guide
     case action
     when action = 'show_products'
       show_products(args)
-    when action = 'add_to_basket'
-      puts "\n\n<<< This action is not implemented yet >>>\n\n"
+    when action = 'add'
+      add_to_basket(args)
     when action = 'show_delivery_charge'
       show_delivery_charge
     when action = 'quit'
@@ -63,8 +67,15 @@ class Guide
     sort_order = args.shift if sort_order == 'by'
     sort_order = 'code' unless %w[code name price].include?(sort_order)
 
-    show_action_header('Show all products')
+    Render.show_action_header('Show all products')
+
     products = Product.saved_products
+
+    if products.empty?
+      puts 'No products Found'
+      Render.separator_line(60, 2)
+      return
+    end
 
     products.sort! do |r1, r2|
       case sort_order
@@ -77,62 +88,54 @@ class Guide
       end
     end
 
-    show_product_table products
-    puts("Sort using 'show_products name', 'show_products code', 'show_products by name' ")
+    Render.show_product_table products
+    Render.show_sort_action_title
   end
 
-  def show_delivery_charge
-    show_action_header('Show all delivery charges')
-    puts "1. Delivery charge is $4.95. for orders under $50\n"
-    puts "2. Delivery charge is $2.95 for orders under $90\n"
-    puts "3. Delivery charge is free for orders of $90 or more\n"
-    separator_line(60, 1)
-  end
+  def add_to_basket(args)
+    Render.show_action_header('Add products to basket')
+    Render.show_basket_action_title
 
-  def show_action_header(title)
-    puts "\n#{title.upcase.center(60)}"
-    separator_line(60)
-  end
+    user_response = gets.chomp
+    product_codes = user_response.split(',').map(&:strip).reject(&:empty?)
 
-  def show_product_table(products)
-    if products.empty?
-      puts 'No products listed'
-      separator_line(60, 2)
+    if product_codes.empty?
+      puts 'No products added to basket'
+      Render.separator_line(60, 2)
       return
     end
 
-    show_product_table_header
+    products = Product.saved_products
+    baskets = []
 
-    products.each do |r|
-      show_product_table_body(r.code, r.name, r.price)
+    # Pre-index products by lowercase code for O(1) lookups
+    products_by_code = products.each_with_object({}) do |product, hash|
+      hash[product.code.downcase] = product
     end
-    separator_line(60, 2)
+
+    product_codes.each do |code|
+      product = products_by_code[code.downcase]
+
+      if product
+        basket_item = baskets.find do |item|
+          item.product.code.downcase == code.downcase
+        end || baskets.push(BasketItem.new(product)).last
+        basket_item.increment
+      else
+        puts "Product #{code} not found\n"
+      end
+    end
+
+    Basket.new(baskets).add
+
+    Render.separator_line(60, 2)
   end
 
-  def show_product_table_body(code, name, price)
-    puts format(' %-20s %-30s %-6s', code.titleize, name.titleize, price.titleize)
-  end
-
-  def show_product_table_header
-    puts format(' %-20s %-30s %-6s', 'Code', 'Name', 'Price')
-    separator_line(60)
-  end
-
-  def separator_line(line_length = 60, line_break = nil)
-    puts "\n" * line_break if line_break
-    puts '-' * line_length
+  def show_delivery_charge
+    Render.show_delivery_charge_rules
   end
 
   def show_available_actions
     puts "AVAILABLE ACTIONS: #{Guide::Config.actions.join(', ')} \n\n"
-  end
-
-  def intoduction
-    puts "\n\n<<< Welcome to  Acme Widget Co >>> \n\n"
-    puts "<<< This is an interactive guide to our new sale system >>> \n\n"
-  end
-
-  def conclusion
-    puts "\n\n<<< Good Bye, Happy shopping!! >>> \n\n"
   end
 end
