@@ -1,13 +1,18 @@
-# This class defines a specific offer for red widgets (R01).
-module Offers
-  class RedWidgetOffer
-    def apply(items)
-      item = items['R01']
-      return 0 unless item && item.quantity > 1
+class RedWidgetOffer
+  def initialize(item)
+    @item = item
+  end
 
-      eligible_pairs = item.quantity / 2
-      discount = eligible_pairs * (item.product.price / 2)
-      -discount.round(2)
-    end
+  def apply
+    quantity = @item.quantity.to_i
+    return @item if quantity < 2 # No discount for single item
+
+    price = @item.product.price.to_d
+    full_price_items = (quantity + 1) / 2
+    half_price_items = quantity / 2
+
+    subtotal = (full_price_items * price) + (half_price_items * price * 0.5)
+    @item.subtotal = subtotal.round(2)
+    self
   end
 end

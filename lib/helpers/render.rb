@@ -1,4 +1,5 @@
-require 'support/string_extend'
+require 'helpers/string_extend'
+require_relative '../core/config'
 
 module Render
   module_function
@@ -31,6 +32,7 @@ module Render
 
   def show_sort_action_title
     puts("Sort using 'show_products name', 'show_products code', 'show_products by name' ")
+    puts "\n"
   end
 
   def show_product_table_header
@@ -58,5 +60,32 @@ module Render
     puts "2. Delivery charge is $2.95 for orders under $90\n"
     puts "3. Delivery charge is free for orders of $90 or more\n"
     separator_line(60, 1)
+  end
+
+  def show_available_actions
+    puts "AVAILABLE ACTIONS: #{Config.actions.join(', ')} \n\n"
+  end
+
+  def show_basket_table(baskets, total)
+    show_action_header('Show all products in basket')
+    show_basket_table_header
+    codes = expanded_product_codes(baskets)
+    show_basket_table_body(codes, total)
+    separator_line(60, 2)
+  end
+
+  def show_basket_table_body(codes, price)
+    puts format(' %-40s %-20s', codes.join(','), format('$%.2f', price))
+  end
+
+  def show_basket_table_header
+    puts format(' %-40s %-20s', 'Product Code', 'Total Price')
+    separator_line(60)
+  end
+
+  def expanded_product_codes(baskets)
+    baskets.flat_map do |item|
+      Array.new(item.quantity, item.product.code)
+    end
   end
 end

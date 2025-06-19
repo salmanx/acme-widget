@@ -1,16 +1,10 @@
-require 'product'
-require 'basket_item'
-require 'basket'
-require 'support/render'
+require_relative 'product'
+require_relative 'basket_item'
+require_relative 'basket'
+require_relative 'config'
+require_relative '../helpers/render'
 
 class Guide
-  class Config
-    @actions = %w[show_products show_delivery_charge add quit]
-    class << self
-      attr_reader :actions
-    end
-  end
-
   def initialize(filepath = nil)
     Product.filepath = filepath
 
@@ -24,7 +18,6 @@ class Guide
 
   def launch!
     Render.introduction
-    show_available_actions
     result = nil
     until result == :quit
       action, args = get_action
@@ -36,8 +29,8 @@ class Guide
 
   def get_action
     action = nil
-    until Guide::Config.actions.include? action
-      show_available_actions if action
+    until Config.actions.include? action
+      Render.show_available_actions
       print '> '
       user_response = gets.chomp
       args = user_response.downcase.strip.split(' ')
@@ -52,7 +45,7 @@ class Guide
     when action = 'show_products'
       show_products(args)
     when action = 'add'
-      add_to_basket(args)
+      add_to_basket
     when action = 'show_delivery_charge'
       show_delivery_charge
     when action = 'quit'
@@ -89,10 +82,11 @@ class Guide
     end
 
     Render.show_product_table products
+
     Render.show_sort_action_title
   end
 
-  def add_to_basket(args)
+  def add_to_basket
     Render.show_action_header('Add products to basket')
     Render.show_basket_action_title
 
@@ -122,20 +116,17 @@ class Guide
         end || baskets.push(BasketItem.new(product)).last
         basket_item.increment
       else
-        puts "Product #{code} not found\n"
+        puts "\nProduct #{code} not found\n"
       end
     end
 
-    Basket.new(baskets).add
+    return unless baskets.any?
 
-    Render.separator_line(60, 2)
+    total = Basket.new(baskets).add.total.to_s('F')
+    Render.show_basket_table(baskets, total)
   end
 
   def show_delivery_charge
     Render.show_delivery_charge_rules
-  end
-
-  def show_available_actions
-    puts "AVAILABLE ACTIONS: #{Guide::Config.actions.join(', ')} \n\n"
   end
 end
